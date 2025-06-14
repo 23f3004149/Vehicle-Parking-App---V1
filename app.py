@@ -1,4 +1,5 @@
 from flask import Flask, session
+from flask import Flask, render_template
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from models import db, User,Admin
@@ -26,11 +27,16 @@ def load_user(user_id):
         return Admin.query.get(int(user_id))
     return None
 
-
+from controllers.auth import auth_bp
+from controllers.admin import admin_bp
+from controllers.user import user_bp
+app.register_blueprint(auth_bp)
+app.register_blueprint(admin_bp)
+app.register_blueprint(user_bp)
 
 @app.route('/')
 def index():
-    return "Vehicle Parking App is Running"
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
