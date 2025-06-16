@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Lot Spot Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold">{{ lot.prime_location_name }}</h3>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="mb-3 d-flex flex-wrap gap-2">
+        <a href="{{ url_for('admin.view_lot', lot_id=lot.id) }}"
+           class="btn btn-outline-dark {% if not filter %}active{% endif %}">
+            All
+        </a>
+        <a href="{{ url_for('admin.view_lot', lot_id=lot.id, filter='available') }}"
+           class="btn btn-outline-success {% if filter == 'available' %}active{% endif %}">
+            Available
+        </a>
+        <a href="{{ url_for('admin.view_lot', lot_id=lot.id, filter='occupied') }}"
+           class="btn btn-outline-danger {% if filter == 'occupied' %}active{% endif %}">
+            Occupied
+        </a>
+    </div>
+
+    <!-- Parking Spot Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Parking Spots</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Spot ID</th>
+                            <th>Status</th>
+                            <th>Customer ID</th>
+                            <th>Vehicle No.</th>
+                            <th>Parked At</th>
+                            <th>Estimated Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for spot in spots %}
+                        <tr class="
+                            {% if spot.is_reserved %}
+                                {% if (now - spot.reservation.start_time).total_seconds() <= 600 %}
+                                    table-warning
+                                {% else %}
+                                    table-danger
+                                {% endif %}
+                            {% else %}
+                                table-success
+                            {% endif %}
+                        ">
+                            <td>{{ spot.id }}</td>
+                            <td>
+                                {% if spot.is_reserved %}
+                                    <span class="badge bg-danger">Occupied</span>
+                                {% else %}
+                                    <span class="badge bg-success">Available</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if spot.reservation %}
+                                    {{ spot.reservation.user.id }}<br>
+                                    <small>{{ spot.reservation.user.username }}</small>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if spot.reservation %}
+                                    {{ spot.reservation.vehicle_number }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if spot.reservation %}
+                                    {{ spot.reservation.start_time.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if spot.reservation %}
+                                    ₹{{ ((now - spot.reservation.start_time).total_seconds() // 3600 + 1) * lot.price_per_hour | int }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

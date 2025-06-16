@@ -65,24 +65,25 @@ def login():
         
         if user and bcrypt.check_password_hash(user.password_hash, password):
             login_user(user, remember=remember, duration=timedelta(days=30))
-            session['user_id'] = user.id
+            session['user_info'] = {'id': user.id, 'role': 'user'}
             flash('Login successful!')
             return redirect(url_for('user.dashboard'))
         
         if admin and bcrypt.check_password_hash(admin.password_hash, password):
-            session['user_type'] = 'admin'
-            login_user(admin)
+            login_user(admin, remember=remember, duration=timedelta(days=30))
+            session['user_info'] = {'id': admin.id, 'role': 'admin'}
             flash('Admin login successful!')
             return redirect(url_for('admin.dashboard'))
         
+
         flash('Invalid username or password')
 
     return render_template('login.html')
-
 
 @auth_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
+    session.clear()
     flash('Logged out successfully!')
     return redirect(url_for('auth.login'))

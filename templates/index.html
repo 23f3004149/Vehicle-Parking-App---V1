@@ -1,13 +1,9 @@
 {% extends "base.html" %}
 
+{% block main_class %}p-0 m-0 w-100{% endblock %}
+
 {% block content %}
 <style>
-    .hero-wrapper {
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-
     .hero-section {
         background-image: url("{{ url_for('static', filename='images/parking-bg.jpg') }}");
         background-size: cover;
@@ -28,7 +24,7 @@
         left: 0;
         height: 100%;
         width: 100%;
-        background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7));
+        background: rgba(0, 0, 0, 0.6); /* Dark overlay */
         z-index: 1;
     }
 
@@ -57,49 +53,51 @@
             font-size: 1rem;
         }
     }
+
+    .features-section {
+        padding: 60px 15px;
+        background-color: #fff;
+    }
+
+    .feature-box i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: #0d6efd;
+    }
 </style>
 
-
-<div class="hero-wrapper">
-    <div class="hero-section">
-        <div class="hero-content">
-            <h1 class="mb-3">Welcome to Smart Vehicle Parking</h1>
-            <p class="lead mb-4">Reserve your parking spot instantly and avoid the hassle of hunting for space.</p>
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <a href="#" class="btn btn-primary btn-lg me-sm-3">Find Parking</a>
-                {% if current_user.is_authenticated %}
-                <a href="#" class="btn btn-outline-light btn-lg">
-                    <i class="bi bi-person-circle me-2"></i> My Reservations
-                </a>
-                {% else %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg">
-                    <i class="bi bi-person-plus me-2"></i> Register
-                </a>
-                {% endif %}
-            </div>
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="mb-3">Welcome to Smart Vehicle Parking</h1>
+        <p class="lead mb-4">Reserve your parking spot instantly and avoid the hassle of hunting for space.</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg me-sm-3">Book Now</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg">
+                <i class="bi bi-person-plus me-2"></i> Register
+            </a>
         </div>
     </div>
 </div>
 
-<div class="container mt-5 mb-5">
-    <div class="row text-center">
+<div class="features-section text-center">
+    <div class="row">
         <div class="col-md-4 mb-4">
-            <div class="p-4">
-                <i class="bi bi-geo-alt-fill display-4 mb-3"></i>
+            <div class="feature-box">
+                <i class="bi bi-geo-alt-fill"></i>
                 <h4>Prime Locations</h4>
                 <p>Find parking in the most accessible and busiest areas of your city.</p>
             </div>
         </div>
         <div class="col-md-4 mb-4">
-            <div class="p-4">
-                <i class="bi bi-clock-history display-4 mb-3"></i>
+            <div class="feature-box">
+                <i class="bi bi-clock-history"></i>
                 <h4>Real-Time Availability</h4>
                 <p>Instantly check spot availability and book within seconds.</p>
             </div>
         </div>
         <div class="col-md-4 mb-4">
-            <div class="p-4">
-                <i class="bi bi-currency-rupee display-4 mb-3"></i>
+            <div class="feature-box">
+                <i class="bi bi-currency-rupee"></i>
                 <h4>Affordable Pricing</h4>
                 <p>Pay only for the hours you park — transparent and fair pricing.</p>
             </div>

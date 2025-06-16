@@ -1,15 +1,70 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="">
-    </head>
-    <body>
-        <h1>User</h1>
-        <a href="{{ url_for('auth.logout') }}">logout</a>
-    </body>
-</html>
+{% extends 'base.html' %}
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Welcome, {{ user.full_name }}</h2>
+
+    <!-- Search and Filter Form -->
+    <form method="get" action="{{ url_for('user.dashboard') }}" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control" placeholder="Search by location or pincode" value="{{ filters.search or '' }}">
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="state" class="form-control" placeholder="Filter by state" value="{{ filters.state or '' }}">
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="city" class="form-control" placeholder="Filter by city" value="{{ filters.city or '' }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+    </form>
+
+    <!-- Active Reservation -->
+    {% if active_reservation %}
+    <div class="alert alert-info">
+        <h5>You currently have a reservation:</h5>
+        <p><strong>Lot:</strong> {{ active_reservation.spot.lot.prime_location_name }}</p>
+        <form method="POST" action="{{ url_for('user.release_spot', reservation_id=active_reservation.id) }}">
+            <button class="btn btn-danger">Release Spot</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="alert alert-secondary">
+        You currently have no active reservation.
+    </div>
+    {% endif %}
+
+    <!-- Search Results -->
+    <h4 class="mt-5">Available Parking Lots</h4>
+    {% if lots %}
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>State</th>
+                <th>City</th>
+                <th>Pincode</th>
+                <th>Capacity</th>
+                <th>Available Spots</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lot in lots %}
+            <tr>
+                <td>{{ lot.prime_location_name }}</td>
+                <td>{{ lot.state }}</td>
+                <td>{{ lot.city }}</td>
+                <td>{{ lot.pin_code }}</td>
+                <td>{{ lot.capacity }}</td>
+                <td>{{ lot.available_spots() }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No lots found for the given criteria.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,5 +1,4 @@
-from flask import Flask, session
-from flask import Flask, render_template
+from flask import Flask, session,render_template
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from models import db, User,Admin
@@ -20,12 +19,16 @@ login_manager.login_view = 'auth.login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    user_type = session.get('user_type')
-    if user_type == 'user':
+    user_info = session.get('user_info')
+    if not user_info:
+        return None
+    role = user_info.get('role')
+    if role == 'user':
         return User.query.get(int(user_id))
-    elif user_type == 'admin':
+    elif role == 'admin':
         return Admin.query.get(int(user_id))
     return None
+
 
 from controllers.auth import auth_bp
 from controllers.admin import admin_bp
