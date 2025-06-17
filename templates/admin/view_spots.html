@@ -13,7 +13,7 @@
     <!-- Filter Buttons -->
     <div class="mb-3 d-flex flex-wrap gap-2">
         <a href="{{ url_for('admin.view_lot', lot_id=lot.id) }}"
-           class="btn btn-outline-dark {% if not filter %}active{% endif %}">
+            class="btn btn-outline-dark {% if not filter %}active{% endif %}">
             All
         </a>
         <a href="{{ url_for('admin.view_lot', lot_id=lot.id, filter='available') }}"
@@ -21,7 +21,7 @@
             Available
         </a>
         <a href="{{ url_for('admin.view_lot', lot_id=lot.id, filter='occupied') }}"
-           class="btn btn-outline-danger {% if filter == 'occupied' %}active{% endif %}">
+            class="btn btn-outline-danger {% if filter == 'occupied' %}active{% endif %}">
             Occupied
         </a>
     </div>

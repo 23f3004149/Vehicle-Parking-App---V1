@@ -97,6 +97,8 @@
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.view_users') }}">Users</a></li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('user.dashboard') }}">Home</a></li>
+                        <a href="{{ url_for('user.my_reservations') }}" class="nav-link">My Reservations</a>
+
                     {% endif %}
                     <li class="nav-item dropdown ms-3">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">

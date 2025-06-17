@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}My Reservations{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">My Reservations</h2>
+
+    <!-- Active Reservations -->
+    <h4 class="text-primary mb-3">Active Reservations</h4>
+    {% if active_data %}
+        <div class="row">
+            {% for item in active_data %}
+            {% set res = item.reservation %}
+            <div class="col-md-4 mb-4">
+                <div class="card border-primary shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ res.spot.lot.prime_location_name }}</h5>
+                        <p class="card-text text-muted">
+                            {{ res.spot.lot.address }}<br>
+                            Pincode: {{ res.spot.lot.pin_code }}
+                        </p>
+                        <span class="badge bg-secondary mb-2">
+                            {{ res.spot.lot.city.name }}, {{ res.spot.lot.city.state }}
+                        </span>
+                        <div class="mb-2 small text-muted">
+                            Lot ID: {{ res.spot.lot.id }}<br>
+                            Spot ID: {{ res.spot.id }}<br>
+                            Vehicle No.: {{ res.vehicle_number }}<br>
+                            Parked At: {{ res.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </div>
+                        <!-- Release Button -->
+                        <button class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#releaseModal{{ res.id }}">
+                            Release Spot
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Release Modal -->
+            <div class="modal fade" id="releaseModal{{ res.id }}" tabindex="-1" aria-labelledby="releaseModalLabel{{ res.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <form method="POST" action="{{ url_for('user.release_spot', reservation_id=res.id) }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="releaseModalLabel{{ res.id }}">Release Spot</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Location:</strong> {{ res.spot.lot.prime_location_name }}</p>
+                                <p><strong>Spot ID:</strong> {{ res.spot.id }}</p>
+                                <p><strong>Vehicle Number:</strong> {{ res.vehicle_number }}</p>
+                                <p><strong>Parked At:</strong> {{ res.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                <hr>
+                                <p><strong>Estimated Duration:</strong> {{ item.parking_hours }} hour(s)</p>
+                                <p><strong>Estimated Cost:</strong> ₹{{ item.estimated_cost }}</p>
+                                <input type="hidden" name="confirm_release" value="1">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger">Confirm & Release</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">You have no active reservations.</p>
+    {% endif %}
+
+    <hr class="my-5">
+
+    <!-- Completed Reservations -->
+    <h4 class="text-success mb-3">Completed Reservations</h4>
+    {% if completed_reservations %}
+        <div class="row">
+            {% for res in completed_reservations %}
+            <div class="col-md-4 mb-4">
+                <div class="card border-success shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">{{ res.spot.lot.prime_location_name }}</h5>
+                        <p class="text-muted mb-2">
+                            <strong>Spot:</strong> {{ res.spot.id }}<br>
+                            <strong>Vehicle:</strong> {{ res.vehicle_number }}<br>
+                            <strong>Parked:</strong> {{ res.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+                            <strong>Left:</strong> {{ res.leaving_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+    
+                            {% set duration = (res.leaving_timestamp - res.parking_timestamp).total_seconds() %}
+                            {% set hours = (duration // 3600)|int %}
+                            {% if hours == 0 %}
+                                {% set hours = 1 %}
+                            {% endif %}
+                            {% set cost = hours * res.spot.lot.price_per_hour %}
+                            <strong>Cost:</strong> ₹{{ cost }}
+                        </p>
+                        <span class="badge bg-secondary">
+                            {{ res.spot.lot.city.name }}, {{ res.spot.lot.city.state }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No completed reservations found.</p>
+    {% endif %}
+
+</div>
+{% endblock %}
