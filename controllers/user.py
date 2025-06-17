@@ -138,7 +138,6 @@ def release_spot(reservation_id):
 @login_required
 @user_required
 def my_reservations():
-    # Active Reservations
     active_reservations = (
         Reservation.query
         .join(ParkingSpot)
@@ -152,20 +151,43 @@ def my_reservations():
         .all()
     )
 
-    # Calculate parking hours and estimated cost per active reservation
     now = datetime.utcnow()
     active_data = []
     for res in active_reservations:
         duration = now - res.parking_timestamp
-        hours = int(duration.total_seconds() // 3600)
-        if hours == 0:
-            hours = 1
-        cost = hours * res.spot.lot.price_per_hour
+        total_minutes = int(duration.total_seconds() // 60)
+        hours = total_minutes // 60
+        minutes = total_minutes % 60
+
+        # Minimum 1 hour charge, then per minute after
+        price_per_hour = res.spot.lot.price_per_hour
+        if hours == 0 and minutes <= 60:
+            cost = price_per_hour
+        else:
+            per_minute_rate = price_per_hour / 60
+            cost = round(total_minutes * per_minute_rate)
+
+        duration_str = f"{hours} hour(s) {minutes} minute(s)"
         active_data.append({
             'reservation': res,
-            'parking_hours': hours,
-            'estimated_cost': cost
+            'duration_str': duration_str,
+            'final_cost': cost
         })
+
+    # Completed Reservations
+    completed_reservations = (
+        Reservation.query
+        .filter_by(user_id=current_user.id, is_active=False)
+        .order_by(Reservation.leaving_timestamp.desc())
+        .all()
+    )
+
+    return render_template(
+        'user/my_reservations.html',
+        active_data=active_data,
+        completed_reservations=completed_reservations
+    )
+
 
     # Completed Reservations
     completed_reservations = (
@@ -187,3 +209,38 @@ def my_reservations():
         completed_reservations=completed_reservations
     )
 
+@user_bp.route('/summary')
+@login_required
+@user_required
+def summary():
+    reservations = Reservation.query.filter_by(user_id=current_user.id).order_by(Reservation.parking_timestamp.desc()).all()
+
+    total_reservations = len(reservations)
+    active_reservations = sum(1 for r in reservations if r.is_active)
+    total_spent = sum(r.parking_cost for r in reservations if r.parking_cost)
+
+    # Revenue by lot (for this user)
+    from sqlalchemy import func
+    lot_revenue_data = (
+        db.session.query(
+            ParkingLot.prime_location_name,
+            func.sum(Reservation.parking_cost)
+        )
+        .join(ParkingSpot, ParkingSpot.id == Reservation.spot_id)
+        .join(ParkingLot, ParkingLot.id == ParkingSpot.lot_id)
+        .filter(Reservation.user_id == current_user.id)
+        .filter(Reservation.is_active == False)
+        .group_by(ParkingLot.prime_location_name)
+        .all()
+    )
+
+    lot_names = [lot for lot, _ in lot_revenue_data]
+    lot_revenues = [round(revenue or 0, 2) for _, revenue in lot_revenue_data]
+
+    return render_template('user/summary.html',
+                           reservations=reservations,
+                           total_reservations=total_reservations,
+                           active_reservations=active_reservations,
+                           total_spent=total_spent,
+                           lot_names=lot_names,
+                           lot_revenues=lot_revenues)

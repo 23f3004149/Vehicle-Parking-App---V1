@@ -46,7 +46,7 @@
                         {% for spot in spots %}
                         <tr class="
                             {% if spot.is_reserved %}
-                                {% if (now - spot.reservation.start_time).total_seconds() <= 600 %}
+                                {% if (now - spot.reservation.parking_timestamp).total_seconds() <= 600 %}
                                     table-warning
                                 {% else %}
                                     table-danger
@@ -65,8 +65,7 @@
                             </td>
                             <td>
                                 {% if spot.reservation %}
-                                    {{ spot.reservation.user.id }}<br>
-                                    <small>{{ spot.reservation.user.username }}</small>
+                                    {{ spot.reservation.user.username }}
                                 {% else %}
                                     -
                                 {% endif %}
@@ -80,14 +79,27 @@
                             </td>
                             <td>
                                 {% if spot.reservation %}
-                                    {{ spot.reservation.start_time.strftime('%Y-%m-%d %H:%M') }}
+                                    {{ spot.reservation.parking_timestamp.strftime('%Y-%m-%d %H:%M') }}
                                 {% else %}
                                     -
                                 {% endif %}
                             </td>
                             <td>
                                 {% if spot.reservation %}
-                                    ₹{{ ((now - spot.reservation.start_time).total_seconds() // 3600 + 1) * lot.price_per_hour | int }}
+                                    {% set total_seconds = (now - spot.reservation.parking_timestamp).total_seconds() %}
+                                    {% set total_minutes = (total_seconds // 60) | int %}
+                                    {% set hours = total_minutes // 60 %}
+                                    {% set minutes = total_minutes % 60 %}
+
+                                    {% if total_minutes <= 60 %}
+                                        {% set cost = lot.price_per_hour %}
+                                    {% else %}
+                                        {% set per_min_cost = lot.price_per_hour / 60 %}
+                                        {% set cost = (per_min_cost * total_minutes) | round(0, 'ceil') %}
+                                    {% endif %}
+
+                                    ₹{{ cost }}<br>
+                                    <small class="text-muted">({{ hours }}h {{ minutes }}m)</small>
                                 {% else %}
                                     -
                                 {% endif %}
