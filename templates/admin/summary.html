@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block title %}All Reservations Summary{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">📊 All Reservations Summary</h2>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Parking Lots</h5>
+                    <p class="card-text fs-4">{{ total_lots }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Parking Spots</h5>
+                    <p class="card-text fs-4">{{ total_spots }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-dark shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <p class="card-text fs-4">{{ total_users }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Chart Containers -->
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Revenue by Parking Lot</h5>
+                    <div style="height: 300px;">
+                        <canvas id="revenueChart" width="100%" height="100%"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Spot Availability</h5>
+                    <div style="height: 300px;">
+                        <canvas id="availabilityChart" width="100%" height="100%"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Reservation Table -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">📝 All Reservations</h5>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Lot</th>
+                        <th>Spot</th>
+                        <th>Vehicle</th>
+                        <th>Parked At</th>
+                        <th>Left At</th>
+                        <th>Duration</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reservations %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ r.user.full_name }}</td>
+                        <td>{{ r.spot.lot.prime_location_name }}</td>
+                        <td>{{ r.spot.id }}</td>
+                        <td>{{ r.vehicle_number }}</td>
+                        <td>{{ r.parking_timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if r.leaving_timestamp %}
+                                {{ r.leaving_timestamp.strftime('%Y-%m-%d %H:%M') }}
+                            {% else %}
+                                --
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r.leaving_timestamp %}
+                                {{ ((r.leaving_timestamp - r.parking_timestamp).total_seconds() // 3600)|int }}h
+                                {{ ((r.leaving_timestamp - r.parking_timestamp).total_seconds() % 3600) // 60|int }}m
+                            {% else %}
+                                Active
+                            {% endif %}
+                        </td>
+                        <td>₹{{ r.parking_cost if r.parking_cost else '-' }}</td>
+                        <td>
+                            {% if r.is_active %}
+                                <span class="badge bg-warning text-dark">Active</span>
+                            {% else %}
+                                <span class="badge bg-success">Completed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ChartJS Scripts -->
+<!-- Load Chart.js FIRST -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Then your chart script -->
+<script>
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels | tojson | safe }},
+            datasets: [{
+                label: 'Revenue (₹)',
+                data: {{ chart_values | tojson | safe }},
+                backgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    const availabilityCtx = document.getElementById('availabilityChart').getContext('2d');
+    new Chart(availabilityCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Occupied', 'Available'],
+            datasets: [{
+                data: {{ [occupied, available] | tojson }},
+                backgroundColor: ['#dc3545', '#198754']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+
+{% endblock %}

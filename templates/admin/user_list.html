@@ -20,7 +20,6 @@
                     <th>Email</th>
                     <th>Address</th>
                     <th>Pin Code</th>
-                    <th>Last Used Spots</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,26 +31,6 @@
                     <td>{{ user.email }}</td>
                     <td>{{ user.address or '—' }}</td>
                     <td>{{ user.pin_code or '—' }}</td>
-                    <td>
-                        {% if user.reservations %}
-                        <table class="table table-sm table-bordered mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Lot Name</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for r in user.reservations|sort(attribute='parking_timestamp', reverse=True) %}
-                                <tr>
-                                    <td>{{ r.spot.lot.prime_location_name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        {% else %}
-                        <span class="text-muted">No history</span>
-                        {% endif %}
-                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

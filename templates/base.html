@@ -95,6 +95,7 @@
                     {% if session.get('user_info', {}).get('role') == 'admin' %}
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.view_users') }}">Users</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.summary') }}">Summary</a></li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('user.dashboard') }}">Home</a></li>
                         <a href="{{ url_for('user.my_reservations') }}" class="nav-link">My Reservations</a>

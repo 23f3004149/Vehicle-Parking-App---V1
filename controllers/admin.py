@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from models import db, ParkingLot, ParkingSpot, User, Reservation, City
 from decorators import admin_required
 from datetime import datetime
+from sqlalchemy import func
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -113,3 +114,47 @@ def view_lot(lot_id):
 def view_users():
     users = User.query.all()
     return render_template('admin/user_list.html', users=users)
+
+@admin_bp.route('/summary')
+@login_required
+@admin_required
+def summary():
+    # Count Data
+    total_lots = ParkingLot.query.count()
+    total_spots = ParkingSpot.query.count()
+    total_users = User.query.filter_by(role='user').count()
+
+    # Revenue by Parking Lot
+    revenue_data = (
+        db.session.query(
+            ParkingLot.prime_location_name,
+            func.coalesce(func.sum(Reservation.parking_cost), 0)
+        )
+        .join(ParkingSpot, ParkingSpot.lot_id == ParkingLot.id)
+        .join(Reservation, Reservation.spot_id == ParkingSpot.id)
+        .filter(Reservation.is_active == False)
+        .group_by(ParkingLot.prime_location_name)
+        .all()
+    )
+
+    chart_labels = [lot for lot, _ in revenue_data]
+    chart_values = [revenue for _, revenue in revenue_data]
+
+    # Spot availability summary
+    total_available = ParkingSpot.query.filter_by(status='A').count()
+    total_occupied = ParkingSpot.query.filter_by(status='O').count()
+
+    # All reservations (with duration & status)
+    reservations = Reservation.query.order_by(Reservation.parking_timestamp.desc()).all()
+
+    return render_template(
+        'admin/summary.html',
+        total_lots=total_lots,
+        total_spots=total_spots,
+        total_users=total_users,
+        chart_labels=chart_labels,
+        chart_values=chart_values,
+        available=total_available,
+        occupied=total_occupied,
+        reservations=reservations
+    )

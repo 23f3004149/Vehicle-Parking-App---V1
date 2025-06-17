@@ -98,6 +98,11 @@ class ParkingSpot(db.Model):
     @property
     def is_occupied(self):
         return self.status == 'O'
+    
+    @property
+    def is_available(self):
+        return self.status == 'A'
+
 
     def __repr__(self):
         return f"<Spot {self.id} - Lot {self.lot_id} - {self.status}>"
