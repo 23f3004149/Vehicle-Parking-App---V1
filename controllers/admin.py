@@ -43,12 +43,6 @@ def create_lot():
         db.session.add(new_lot)
         db.session.commit()
 
-        # Create parking spots automatically
-        for i in range(max_spots):
-            spot_code = f"GR{i+1}"  # Or use any naming convention
-            spot = ParkingSpot(lot_id=new_lot.id, status='A')
-            db.session.add(spot)
-
         db.session.commit()
         flash('Parking lot created successfully!')
         return redirect(url_for('admin.dashboard'))

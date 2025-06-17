@@ -19,16 +19,12 @@ login_manager.login_view = 'auth.login'
 
 @login_manager.user_loader
 def load_user(user_id):
-    user_info = session.get('user_info')
-    if not user_info:
-        return None
-    role = user_info.get('role')
-    if role == 'user':
+    user_type = session.get('user_type')
+    if user_type == 'user':
         return User.query.get(int(user_id))
-    elif role == 'admin':
+    elif user_type == 'admin':
         return Admin.query.get(int(user_id))
     return None
-
 
 from controllers.auth import auth_bp
 from controllers.admin import admin_bp
