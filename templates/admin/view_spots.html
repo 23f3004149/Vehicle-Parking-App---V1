@@ -57,12 +57,13 @@
                         ">
                             <td>{{ spot.id }}</td>
                             <td>
-                                {% if spot.is_reserved %}
+                                {% if spot.is_occupied %}
                                     <span class="badge bg-danger">Occupied</span>
                                 {% else %}
                                     <span class="badge bg-success">Available</span>
                                 {% endif %}
                             </td>
+
                             <td>
                                 {% if spot.reservation %}
                                     {{ spot.reservation.user.username }}

@@ -17,7 +17,8 @@
                         <h5 class="card-title text-primary">{{ res.spot.lot.prime_location_name }}</h5>
                         <p class="card-text text-muted">
                             {{ res.spot.lot.address }}<br>
-                            Pincode: {{ res.spot.lot.pin_code }}
+                            Pincode: {{ res.spot.lot.pin_code }} <br>
+                            Rate: ₹{{ res.spot.lot.price_per_hour }} / hour
                         </p>
                         <span class="badge bg-secondary mb-2">
                             {{ res.spot.lot.city.name }}, {{ res.spot.lot.city.state }}
@@ -37,32 +38,32 @@
             </div>
 
             <!-- Release Modal -->
-<div class="modal fade" id="releaseModal{{ res.id }}" tabindex="-1" aria-labelledby="releaseModalLabel{{ res.id }}" aria-hidden="true">
-    <div class="modal-dialog">
-        <form method="POST" action="{{ url_for('user.release_spot', reservation_id=res.id) }}">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="releaseModalLabel{{ res.id }}">Release Spot</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Location:</strong> {{ res.spot.lot.prime_location_name }}</p>
-                    <p><strong>Spot ID:</strong> {{ res.spot.id }}</p>
-                    <p><strong>Vehicle Number:</strong> {{ res.vehicle_number }}</p>
-                    <p><strong>Parked At:</strong> {{ res.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                    <hr>
-                    <p><strong>Duration:</strong> {{ item.duration_str }}</p>
-                    <p><strong>Total Cost:</strong> ₹{{ item.final_cost }}</p>
-                    <input type="hidden" name="confirm_release" value="1">
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger">Confirm & Release</button>
+            <div class="modal fade" id="releaseModal{{ res.id }}" tabindex="-1" aria-labelledby="releaseModalLabel{{ res.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <form method="POST" action="{{ url_for('user.release_spot', reservation_id=res.id) }}">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="releaseModalLabel{{ res.id }}">Release Spot</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p><strong>Location:</strong> {{ res.spot.lot.prime_location_name }}</p>
+                                <p><strong>Spot ID:</strong> {{ res.spot.id }}</p>
+                                <p><strong>Vehicle Number:</strong> {{ res.vehicle_number }}</p>
+                                <p><strong>Parked At:</strong> {{ res.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                <hr>
+                                <strong>Rate:</strong> ₹{{ res.spot.lot.price_per_hour }} / hour
+                                <p><strong>Duration:</strong> {{ item.duration_str }}</p>
+                                <p><strong>Total Cost:</strong> ₹{{ item.final_cost }}</p>
+                                <input type="hidden" name="confirm_release" value="1">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-danger">Confirm & Release</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </form>
-    </div>
-</div>
-
             {% endfor %}
         </div>
     {% else %}
@@ -72,49 +73,34 @@
     <hr class="my-5">
 
     <!-- Completed Reservations -->
-<h4 class="text-success mb-3">Completed Reservations</h4>
-{% if completed_reservations %}
-    <div class="row">
-        {% for res in completed_reservations %}
-        <div class="col-md-4 mb-4">
-            <div class="card square-card border-success shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title text-success">{{ res.spot.lot.prime_location_name }}</h5>
-                    <p class="text-muted mb-2">
-                        <strong>Spot:</strong> {{ res.spot.id }}<br>
-                        <strong>Vehicle:</strong> {{ res.vehicle_number }}<br>
-                        <strong>Parked:</strong> {{ res.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}<br>
-                        <strong>Left:</strong> {{ res.leaving_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}<br>
-
-                        {# Duration & Cost Calculation #}
-                        {% set total_seconds = (res.leaving_timestamp - res.parking_timestamp).total_seconds() %}
-                        {% set total_minutes = (total_seconds // 60) | int %}
-                        {% set hours = total_minutes // 60 %}
-                        {% set minutes = total_minutes % 60 %}
-                        {% set duration_str = hours ~ " hour(s) " ~ minutes ~ " minute(s)" %}
-
-                        {% if total_minutes <= 60 %}
-                            {% set cost = res.spot.lot.price_per_hour %}
-                        {% else %}
-                            {% set per_min_cost = res.spot.lot.price_per_hour / 60 %}
-                            {% set cost = (per_min_cost * total_minutes) | round(0, 'ceil') %}
-                        {% endif %}
-
-                        <strong>Duration:</strong> {{ duration_str }}<br>
-                        <strong>Cost:</strong> ₹{{ cost }}
-                    </p>
-                    <span class="badge bg-secondary">
-                        {{ res.spot.lot.city.name }}, {{ res.spot.lot.city.state }}
-                    </span>
+    <h4 class="text-success mb-3">Completed Reservations</h4>
+    {% if completed_data %}
+        <div class="row">
+            {% for item in completed_data %}
+            {% set res = item.reservation %}
+            <div class="col-md-4 mb-4">
+                <div class="card square-card border-success shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">{{ res.spot.lot.prime_location_name }}</h5>
+                        <p class="text-muted mb-2">
+                            <strong>Spot:</strong> {{ res.spot.id }}<br>
+                            <strong>Vehicle:</strong> {{ res.vehicle_number }}<br>
+                            <strong>Parked:</strong> {{ res.parking_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+                            <strong>Left:</strong> {{ res.leaving_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+                            <strong>Rate:</strong> ₹{{ res.spot.lot.price_per_hour }} / hour <br>
+                            <strong>Duration:</strong> {{ item.duration_str }}<br>
+                            <strong>Cost:</strong> ₹{{ item.final_cost }}
+                        </p>
+                        <span class="badge bg-secondary">
+                            {{ res.spot.lot.city.name }}, {{ res.spot.lot.city.state }}
+                        </span>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
-{% else %}
-    <p class="text-muted">No completed reservations found.</p>
-{% endif %}
-
-
+    {% else %}
+        <p class="text-muted">No completed reservations found.</p>
+    {% endif %}
 </div>
 {% endblock %}

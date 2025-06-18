@@ -54,14 +54,15 @@
         <div class="col-md-4 mb-4">
             <div class="card square-card shadow-sm h-100">
                 <div class="card-body">
-                    <h5 class="card-title">{{ lot.prime_location_name }}</h5>
+                    <h5 class="card-title text-dark">{{ lot.prime_location_name }}</h5>
                     <p class="card-text text-muted">{{ lot.address }}<br>Pincode: {{ lot.pin_code }}</p>
 
                     <span class="badge bg-secondary mb-2">{{ lot.city.name }}, {{ lot.city.state }}</span>
 
-                    <div class="mb-2 text-muted small">
+                    <div class="mb-3 text-muted small">
                         Capacity: {{ lot.max_spots }}<br>
-                        Available: {{ lot.available_spots() }}
+                        Available: {{ lot.available_spots() }} <br>
+                        Rate: ₹{{ lot.price_per_hour }} / hour
                     </div>
 
                     {% if lot.available_spots() > 0 %}
@@ -106,7 +107,7 @@
                     <!-- Vehicle Number -->
                     <div class="mb-3">
                         <label for="vehicleNumber{{ lot.id }}" class="form-label">Vehicle Number</label>
-                        <input type="text" name="vehicle_number" id="vehicleNumber{{ lot.id }}" class="form-control" placeholder="e.g. UP32AB1234" required {% if not available_spot %}disabled{% endif %}>
+                        <input type="text" name="vehicle_number" id="vehicleNumber{{ lot.id }}" class="form-control" maxlength="10" minlength="10" placeholder="e.g. UP32AB1234" required {% if not available_spot %}disabled{% endif %}>
                     </div>
                 </div>
 
