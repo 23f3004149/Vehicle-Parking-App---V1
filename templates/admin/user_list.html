@@ -3,14 +3,25 @@
 
 {% block content %}
 <div class="container py-4">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="mb-4">Registered Users</h3>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        <h3 class="fw-bold text-primary">Registered <span class="text-muted">Users</span></h3>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
         </a>
     </div>
 
+    <!-- Search Bar -->
+    <form method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control rounded-start" placeholder="🔍 Search by name, username, or email..." value="{{ search or '' }}">
+            <button type="submit" class="btn btn-dark rounded-end">Search</button>
+        </div>
+    </form>
+
+    <!-- User Table -->
     <div class="table-responsive">
+        {% if users %}
         <table class="table table-bordered table-hover align-middle text-center">
             <thead class="table-light">
                 <tr>
@@ -35,6 +46,10 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <div class="alert mt-4">No users found matching your search.</div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
+

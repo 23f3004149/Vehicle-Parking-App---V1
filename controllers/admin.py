@@ -3,17 +3,55 @@ from flask_login import login_required, current_user
 from models import db, ParkingLot, ParkingSpot, User, Reservation, City
 from decorators import admin_required
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func,or_
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
-# Admin dashboard showing list of parking lots
 @admin_bp.route('/dashboard')
 @login_required
 @admin_required
 def dashboard():
-    parking_lots = ParkingLot.query.all()
-    return render_template('admin/dashboard.html', lots=parking_lots)
+    search = request.args.get('search', '').strip().lower()
+    state = request.args.get('state', '').strip().lower()
+    city = request.args.get('city', '').strip().lower()
+
+    # Base query with join to City
+    query = ParkingLot.query.join(City).filter(True)
+
+    # Search by prime location or pincode
+    if search:
+        query = query.filter(
+            db.or_(
+                ParkingLot.prime_location_name.ilike(f"%{search}%"),
+                ParkingLot.pin_code.ilike(f"%{search}%")
+            )
+        )
+
+    # Filter by state
+    if state:
+        query = query.filter(City.state.ilike(f"%{state}%"))
+
+    # Filter by city
+    if city:
+        query = query.filter(City.name.ilike(f"%{city}%"))
+
+    lots = query.all()
+
+    # Get list of all states and cities for dropdowns
+    states = [row[0] for row in db.session.query(City.state).distinct().all()]
+    cities = [row[0] for row in db.session.query(City.name).distinct().all()]
+
+    return render_template(
+        'admin/dashboard.html',
+        lots=lots,
+        filters={
+            'search': search,
+            'state': state,
+            'city': city
+        },
+        states=states,
+        cities=cities
+    )
 
 # Create a new parking lot
 @admin_bp.route('/create-lot', methods=['GET', 'POST'])
@@ -101,13 +139,27 @@ def view_lot(lot_id):
 
     now = datetime.utcnow()
     return render_template('admin/view_spots.html', lot=lot, spots=spots, now=now, filter=filter_type)
+
 # View all registered users
+
 @admin_bp.route('/users')
 @login_required
 @admin_required
 def view_users():
-    users = User.query.all()
-    return render_template('admin/user_list.html', users=users)
+    search = request.args.get('search', '').strip().lower()
+
+    query = User.query
+    if search:
+        query = query.filter(
+            or_(
+                User.full_name.ilike(f"%{search}%"),
+                User.username.ilike(f"%{search}%"),
+                User.email.ilike(f"%{search}%")
+            )
+        )
+
+    users = query.all()
+    return render_template('admin/user_list.html', users=users, search=search)
 
 @admin_bp.route('/summary')
 @login_required

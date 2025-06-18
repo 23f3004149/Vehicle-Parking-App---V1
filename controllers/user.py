@@ -188,27 +188,6 @@ def my_reservations():
         completed_reservations=completed_reservations
     )
 
-
-    # Completed Reservations
-    completed_reservations = (
-        Reservation.query
-        .join(ParkingSpot)
-        .join(ParkingLot)
-        .filter(
-            Reservation.user_id == current_user.id,
-            Reservation.is_active == False,
-            Reservation.leaving_timestamp != None
-        )
-        .order_by(Reservation.leaving_timestamp.desc())
-        .all()
-    )
-
-    return render_template(
-        'user/my_reservations.html',
-        active_data=active_data,
-        completed_reservations=completed_reservations
-    )
-
 @user_bp.route('/summary')
 @login_required
 @user_required
@@ -238,9 +217,9 @@ def summary():
     lot_revenues = [round(revenue or 0, 2) for _, revenue in lot_revenue_data]
 
     return render_template('user/summary.html',
-                           reservations=reservations,
-                           total_reservations=total_reservations,
-                           active_reservations=active_reservations,
-                           total_spent=total_spent,
-                           lot_names=lot_names,
-                           lot_revenues=lot_revenues)
+                            reservations=reservations,
+                            total_reservations=total_reservations,
+                            active_reservations=active_reservations,
+                            total_spent=total_spent,
+                            lot_names=lot_names,
+                            lot_revenues=lot_revenues)
