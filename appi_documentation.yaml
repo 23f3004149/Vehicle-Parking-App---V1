@@ -1,0 +1,136 @@
+openapi: 3.0.3
+info:
+  title: Vehicle Parking Web API
+  description: RESTful API for managing parking lots, spots, and reservations.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+
+paths:
+
+  /lots:
+    get:
+      summary: Get all parking lots
+      responses:
+        '200':
+          description: A list of all parking lots
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lots:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Lot'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /lots/{lot_id}/spots:
+    get:
+      summary: Get all spots for a given lot
+      parameters:
+        - name: lot_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A list of parking spots for the lot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lot_id:
+                    type: integer
+                  lot_name:
+                    type: string
+                  total_spots:
+                    type: integer
+                  spots:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Spot'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /reservations:
+    get:
+      summary: Get all reservations
+      responses:
+        '200':
+          description: A list of reservations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reservation'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+
+  schemas:
+    Lot:
+      type: object
+      properties:
+        id:
+          type: integer
+        city:
+          type: string
+        location:
+          type: string
+        price_per_hour:
+          type: number
+        total_spots:
+          type: integer
+
+    Spot:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum: [Available, Occupied]
+        lot_id:
+          type: integer
+        lot_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        is_reserved:
+          type: boolean
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+        user:
+          type: string
+        vehicle_number:
+          type: string
+        spot_id:
+          type: integer
+        started_at:
+          type: string
