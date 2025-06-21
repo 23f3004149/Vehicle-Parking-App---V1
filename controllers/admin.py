@@ -79,13 +79,19 @@ def create_lot():
         )
 
         db.session.add(new_lot)
-        db.session.commit()
+        db.session.flush()  # Get new_lot.id before commit
+
+        # Auto-create empty spots
+        for _ in range(max_spots):
+            new_spot = ParkingSpot(lot_id=new_lot.id)
+            db.session.add(new_spot)
 
         db.session.commit()
-        flash('Parking lot created successfully!')
+        flash('Parking lot created successfully with spots!')
         return redirect(url_for('admin.dashboard'))
 
     return render_template('admin/create_lot.html', cities=cities)
+
 
 # Edit Parking Lot
 @admin_bp.route('/edit-lot/<int:lot_id>', methods=['GET', 'POST'])
@@ -115,9 +121,23 @@ def edit_lot(lot_id):
 @admin_required
 def delete_lot(lot_id):
     lot = ParkingLot.query.get_or_404(lot_id)
+
+
+    active_reservation = (
+        db.session.query(Reservation)
+        .join(ParkingSpot)
+        .filter(ParkingSpot.lot_id == lot.id, Reservation.leaving_timestamp == None)
+        .first()
+    )
+
+    if active_reservation:
+        flash("Cannot delete lot: some spots have active reservations.", "danger")
+        return redirect(url_for('admin.dashboard'))
+
     db.session.delete(lot)
     db.session.commit()
-    flash('Lot deleted successfully.')
+
+    flash("Lot deleted successfully.")
     return redirect(url_for('admin.dashboard'))
 
 # View spots under a lot

@@ -5,9 +5,6 @@ from flask_login import UserMixin
 db = SQLAlchemy()
 
 
-# User and Admin Models
-
-
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
 
@@ -39,10 +36,6 @@ class Admin(db.Model, UserMixin):
     def __repr__(self):
         return f"<Admin {self.username}>"
 
-
-# -------------------------------
-# City & Lot Models
-# -------------------------------
 
 class City(db.Model):
     __tablename__ = 'city'
@@ -81,9 +74,6 @@ class ParkingLot(db.Model):
         return f"<ParkingLot {self.prime_location_name} in CityID {self.city_id}>"
 
 
-# -------------------------------
-# Parking Spot and Reservation
-# -------------------------------
 
 class ParkingSpot(db.Model):
     __tablename__ = 'parking_spot'
@@ -93,7 +83,8 @@ class ParkingSpot(db.Model):
     status = db.Column(db.String(1), default='A')  # A = Available, O = Occupied
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    reservation = db.relationship('Reservation', backref='spot', uselist=False)
+    reservation = db.relationship('Reservation', backref='spot', uselist=False, cascade='all, delete-orphan')
+
 
     @property
     def is_occupied(self):
